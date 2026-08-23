@@ -45,13 +45,13 @@
             --page:      #191919;                    /* Notionダークのページ背景と同じ色 */
             --edge:      rgba(255, 195, 155, 0.16);
             --edge-str:  rgba(255, 195, 155, 0.28);
-            --inner:     rgba(30, 18, 10, 0.42);
+            --inner:     rgba(45, 14, 2, 0.46);
             --inset:     inset 0 1px 3px rgba(0, 0, 0, 0.42), inset 0 -1px 2px rgba(0, 0, 0, 0.3);
-            --track:     rgba(255, 220, 190, 0.17);
-            --accent:    #ffa15c;
-            --accent-2:  #f4796a;
-            --fg:        #fbf1e9;
-            --fg-mute:   #d6c0b0;
+            --track:     rgba(255, 230, 205, 0.20);
+            --accent:    #ffbe72;                    /* 空より明るく置いて、日輪として浮かせる */
+            --accent-2:  #ff8f70;
+            --fg:        #fff6ef;
+            --fg-mute:   #f0d9c8;
             --btn:       #f7e8db;
             --btn-fg:    #2a1a11;
             --input-bg:  rgba(255, 240, 225, 0.09);
@@ -285,7 +285,7 @@
     // 空の色。夜明け前 → 朝焼け → 陽が昇る の4段階をテーマごとに持つ
     const SKY = {
         light: [['#fdf8f3', '#f7ece1'], ['#fff3e9', '#ffe0c8'], ['#fff0e0', '#ffd3b0'], ['#fff2e2', '#ffc796']],
-        dark:  [['#2b1e16', '#3a2519'], ['#3f2417', '#5e3018'], ['#583116', '#7d491c'], ['#6d421d', '#9c5f27']]
+        dark:  [['#8a4508', '#b25a09'], ['#994e09', '#c2670a'], ['#ab580a', '#d4740e'], ['#bb640d', '#e5860f']]
     };
 
     function jtFmt(s) { return Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0'); }
