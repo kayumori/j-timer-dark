@@ -22,45 +22,45 @@
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
 
-        /* ライト：朝の光。白ではなく、日が差した紙の色 */
+        /* ライト */
         :root {
-            --base:      #fdf8f3;
-            --card:      #fffdfb;
-            --card-run:  rgba(255, 253, 251, 0.82); /* 計測中は下の空の色を少し透かす */
-            --edge:      rgba(163, 110, 70, 0.17);
-            --edge-str:  rgba(163, 110, 70, 0.27);
-            --track:     #f1e2d5;  /* リングの軌道 */
-            --accent:    #f97316;  /* 朝日のオレンジ */
-            --accent-2:  #ef5f52;  /* リングの始まり側。朝焼けの赤み */
+            --page:      #fff;                       /* 枠外。Notionのページ色に合わせる */
+            --edge:      rgba(163, 110, 70, 0.20);
+            --edge-str:  rgba(163, 110, 70, 0.30);
+            --inner:     rgba(255, 255, 255, 0.78);  /* リング中央の面。空の色に馴染ませる */
+            --inset:     inset 0 1px 3px rgba(90, 45, 10, 0.09), inset 0 -1px 2px rgba(90, 45, 10, 0.055);
+            --track:     rgba(120, 70, 35, 0.16);    /* リングの軌道 */
+            --accent:    #f97316;                    /* 朝日のオレンジ */
+            --accent-2:  #ef5f52;                    /* リングの始まり側。朝焼けの赤み */
             --fg:        #33221a;
-            --fg-mute:   #8a6f5e;
+            --fg-mute:   #856a58;
             --btn:       #33221a;
             --btn-fg:    #fdf8f3;
-            --input-bg:  #fdf6f0;
-            --hover:     rgba(163, 110, 70, 0.07);
-            --sw:        #cdb7a5;
+            --input-bg:  rgba(255, 255, 255, 0.6);
+            --hover:     rgba(163, 110, 70, 0.09);
+            --sw:        #c3ab98;
         }
-        /* ダーク：夜明け前の空 */
+        /* ダーク：夜明け前。真っ暗にはせず、空が白み始めたくらいの明るさから始める */
         html[data-theme="dark"] {
-            --base:      #1a120e;
-            --card:      #241a14;
-            --card-run:  rgba(30, 20, 15, 0.78);
-            --edge:      rgba(255, 190, 150, 0.15);
-            --edge-str:  rgba(255, 190, 150, 0.26);
-            --track:     #3d2b20;
-            --accent:    #ff9a4d;
-            --accent-2:  #f2705c;
-            --fg:        #f8ece2;
-            --fg-mute:   #b39c8c;
-            --btn:       #f6e7d9;
-            --btn-fg:    #221710;
-            --input-bg:  #2c1f18;
-            --hover:     rgba(255, 190, 150, 0.08);
-            --sw:        #6d5445;
+            --page:      #191919;                    /* Notionダークのページ背景と同じ色 */
+            --edge:      rgba(255, 195, 155, 0.16);
+            --edge-str:  rgba(255, 195, 155, 0.28);
+            --inner:     rgba(30, 18, 10, 0.42);
+            --inset:     inset 0 1px 3px rgba(0, 0, 0, 0.42), inset 0 -1px 2px rgba(0, 0, 0, 0.3);
+            --track:     rgba(255, 220, 190, 0.17);
+            --accent:    #ffa15c;
+            --accent-2:  #f4796a;
+            --fg:        #fbf1e9;
+            --fg-mute:   #d6c0b0;
+            --btn:       #f7e8db;
+            --btn-fg:    #2a1a11;
+            --input-bg:  rgba(255, 240, 225, 0.09);
+            --hover:     rgba(255, 220, 190, 0.11);
+            --sw:        #96796a;
         }
 
-        /* iframeの地色は既定が白なので、テーマの色で必ず塗る */
-        html { background: var(--base); }
+        /* iframeの地色は既定が白なので、必ず塗る */
+        html { background: var(--page); }
 
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Inter', sans-serif;
@@ -68,12 +68,14 @@
             justify-content: center;
             align-items: center;
             min-height: 100vh;
-            background: var(--base);
+            background: var(--page);
             padding: 20px;
         }
 
+        /* 空のグラデーションはこのカードの中に描く。枠外はNotionの色のまま */
         .jt-card {
-            background: var(--card);
+            background: var(--page);
+            box-shadow: var(--inset);
             border: 1px solid var(--edge);
             border-radius: 12px;
             padding: 1rem 1.75rem;
@@ -99,7 +101,7 @@
         .jt-inner {
             width: 60px;
             height: 60px;
-            background: var(--card);
+            background: var(--inner);
             border-radius: 50%;
             display: flex;
             align-items: center;
@@ -217,7 +219,7 @@
             border-radius: 9px;
             background: none;
             cursor: pointer;
-            opacity: 0.45;
+            opacity: 0.5;
             -webkit-appearance: none;
             appearance: none;
             transition: opacity 0.18s;
@@ -278,36 +280,15 @@
 
     // 配色はCSS変数から読む。テーマを切り替えたら値が変わるので、その都度読み直す
     const C = n => getComputedStyle(root).getPropertyValue(n).trim();
+    const isDark = () => root.getAttribute('data-theme') !== 'light';
 
     // 空の色。夜明け前 → 朝焼け → 陽が昇る の4段階をテーマごとに持つ
     const SKY = {
         light: [['#fdf8f3', '#f7ece1'], ['#fff3e9', '#ffe0c8'], ['#fff0e0', '#ffd3b0'], ['#fff2e2', '#ffc796']],
-        dark:  [['#1a120e', '#241611'], ['#2e1710', '#48200f'], ['#44230f', '#603512'], ['#573619', '#7c4d1f']]
+        dark:  [['#2b1e16', '#3a2519'], ['#3f2417', '#5e3018'], ['#583116', '#7d491c'], ['#6d421d', '#9c5f27']]
     };
 
     function jtFmt(s) { return Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0'); }
-
-    function jtUpdate() {
-        if (!jt_run) { jt_total = (parseInt($('jt-input').value) || 10) * 60; jt_rem = jt_total; jtDraw(); }
-    }
-
-    // 進んだぶんの弧を、朝焼けの赤みから朝日のオレンジへ流す
-    function jtRing(deg) {
-        return 'conic-gradient(' + C('--accent-2') + ' 0deg, ' + C('--accent') + ' ' + deg + 'deg, ' + C('--track') + ' ' + deg + 'deg)';
-    }
-
-    function jtDraw() {
-        $('jt-time').textContent = jtFmt(jt_rem);
-        $('jt-ring').style.background = jtRing(((jt_total - jt_rem) / jt_total) * 360);
-        jtPhase();
-    }
-
-    function jtPhase() {
-        const p = (jt_total - jt_rem) / jt_total;
-        jtBg(p);
-        if (!jt_run) return;
-        $('jt-phase').textContent = ['心を静めて、思考を整理しましょう', '自由に思考を流れるままに表現してください', '深い洞察や気づきを大切に記録しましょう', 'もうすぐ完了です。最後の思考をまとめましょう'][p < 0.25 ? 0 : p < 0.5 ? 1 : p < 0.75 ? 2 : 3];
-    }
 
     function lerp(c1, c2, f) {
         const h1 = c1.replace('#', ''), h2 = c2.replace('#', '');
@@ -317,16 +298,38 @@
         }).join('');
     }
 
-    // 進むにつれて空が明けていく
-    function jtBg(p) {
-        const s = SKY[root.getAttribute('data-theme') === 'light' ? 'light' : 'dark'];
+    // 進むにつれて空が明けていく。カードの中に描くので、枠外はNotionの色のまま
+    function jtSky(p) {
+        const s = SKY[isDark() ? 'dark' : 'light'];
         let i, lp;
         if (p <= 0.33) { i = 0; lp = p / 0.33; }
         else if (p <= 0.66) { i = 1; lp = (p - 0.33) / 0.33; }
         else { i = 2; lp = (p - 0.66) / 0.34; }
-        const t = lerp(s[i][0], s[i + 1][0], lp), b = lerp(s[i][1], s[i + 1][1], lp);
-        document.body.style.background = 'linear-gradient(135deg,' + t + ' 0%,' + b + ' 100%)';
-        $('jt-card').style.background = C('--card-run');
+        return 'linear-gradient(135deg,' + lerp(s[i][0], s[i + 1][0], lp) + ' 0%,' + lerp(s[i][1], s[i + 1][1], lp) + ' 100%)';
+    }
+
+    // 進んだぶんの弧を、朝焼けの赤みから朝日のオレンジへ流す
+    function jtRing(deg) {
+        return 'conic-gradient(' + C('--accent-2') + ' 0deg, ' + C('--accent') + ' ' + deg + 'deg, ' + C('--track') + ' ' + deg + 'deg)';
+    }
+
+    // カウントを進めずに、今のテーマ・今の進捗で塗り直す
+    function jtPaint() {
+        const p = (jt_total - jt_rem) / jt_total;
+        $('jt-time').textContent = jtFmt(jt_rem);
+        $('jt-ring').style.background = jtRing(p * 360);
+        $('jt-card').style.background = jtSky(p);
+    }
+
+    function jtUpdate() {
+        if (!jt_run) { jt_total = (parseInt($('jt-input').value) || 10) * 60; jt_rem = jt_total; jtPaint(); }
+    }
+
+    function jtDraw() {
+        jtPaint();
+        if (!jt_run) return;
+        const p = (jt_total - jt_rem) / jt_total;
+        $('jt-phase').textContent = ['心を静めて、思考を整理しましょう', '自由に思考を流れるままに表現してください', '深い洞察や気づきを大切に記録しましょう', 'もうすぐ完了です。最後の思考をまとめましょう'][p < 0.25 ? 0 : p < 0.5 ? 1 : p < 0.75 ? 2 : 3];
     }
 
     function jtStart() {
@@ -335,7 +338,7 @@
             $('jt-input').disabled = true;
             const s = $('jt-sel'); s.style.opacity = '0.35'; s.style.pointerEvents = 'none';
             jt_iv = setInterval(() => { jt_rem--; jtDraw(); if (jt_rem <= 0) jtComplete(); }, 1000);
-            jtPhase();
+            jtDraw();
         }
     }
 
@@ -353,15 +356,7 @@
         const s = $('jt-sel'); s.style.opacity = '1'; s.style.pointerEvents = 'auto';
         jt_total = (parseInt($('jt-input').value) || 10) * 60; jt_rem = jt_total;
         $('jt-phase').textContent = '深呼吸をして準備を整えましょう';
-        jtIdlePaint();
-    }
-
-    // カウントを進めずに、今のテーマの色で塗り直す
-    function jtIdlePaint() {
-        $('jt-time').textContent = jtFmt(jt_rem);
-        $('jt-ring').style.background = jtRing(((jt_total - jt_rem) / jt_total) * 360);
-        document.body.style.background = C('--base');
-        $('jt-card').style.background = C('--card');
+        jtPaint();
     }
 
     function jtComplete() {
@@ -386,22 +381,19 @@
 
     // テーマ切り替え。選んだ結果は次に開いたときも残す
     function jtMarkTheme() {
-        const dark = root.getAttribute('data-theme') !== 'light';
-        $('jt-tg').setAttribute('aria-checked', dark ? 'true' : 'false');
-        $('jt-tg').title = dark ? 'ライトモードにする' : 'ダークモードにする';
+        $('jt-tg').setAttribute('aria-checked', isDark() ? 'true' : 'false');
+        $('jt-tg').title = isDark() ? 'ライトモードにする' : 'ダークモードにする';
     }
 
     $('jt-tg').addEventListener('click', () => {
-        const next = root.getAttribute('data-theme') === 'light' ? 'dark' : 'light';
-        root.setAttribute('data-theme', next);
+        root.setAttribute('data-theme', isDark() ? 'light' : 'dark');
         jtMarkTheme();
-        try { localStorage.setItem('jtimer-theme', next); } catch (x) {}
-        // 計測中はその時点の空の色で、止まっているときは待機の色で塗り直す
-        if (jt_run) jtDraw(); else jtIdlePaint();
+        try { localStorage.setItem('jtimer-theme', isDark() ? 'dark' : 'light'); } catch (x) {}
+        jtPaint(); // カウントは止めず、今の進捗のまま新しいテーマの色で塗り直す
     });
 
     jtMarkTheme();
-    jtIdlePaint();
+    jtPaint();
 </script>
 
 </body>
