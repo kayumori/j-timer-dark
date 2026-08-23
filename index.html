@@ -28,7 +28,14 @@
             --edge:      rgba(163, 110, 70, 0.20);
             --edge-str:  rgba(163, 110, 70, 0.30);
             --inner:     rgba(255, 255, 255, 0.78);  /* リング中央の面。空の色に馴染ませる */
-            --inset:     inset 0 1px 3px rgba(90, 45, 10, 0.09), inset 0 -1px 2px rgba(90, 45, 10, 0.055);
+            /* 縁の1本線 */
+            --inset:     inset 0 1px 1px rgba(96, 46, 8, 0.20), inset 0 -1px 1px rgba(96, 46, 8, 0.10);
+            /* 内壁。上から光が入る想定で、上辺がいちばん濃く落ちる */
+            --rim:
+                linear-gradient(180deg, rgba(96, 46, 8, 0.17) 0%, rgba(96, 46, 8, 0.05) 7%, rgba(96, 46, 8, 0) 17%),
+                linear-gradient(0deg,   rgba(96, 46, 8, 0.11) 0%, rgba(96, 46, 8, 0.03) 6%, rgba(96, 46, 8, 0) 14%),
+                linear-gradient(90deg,  rgba(96, 46, 8, 0.10) 0%, rgba(96, 46, 8, 0) 4%),
+                linear-gradient(270deg, rgba(96, 46, 8, 0.10) 0%, rgba(96, 46, 8, 0) 4%);
             --track:     rgba(120, 70, 35, 0.16);    /* リングの軌道 */
             --accent:    #f97316;                    /* 朝日のオレンジ */
             --accent-2:  #ef5f52;                    /* リングの始まり側。朝焼けの赤み */
@@ -46,7 +53,13 @@
             --edge:      rgba(255, 195, 155, 0.16);
             --edge-str:  rgba(255, 195, 155, 0.28);
             --inner:     rgba(45, 14, 2, 0.46);
-            --inset:     inset 0 1px 3px rgba(0, 0, 0, 0.42), inset 0 -1px 2px rgba(0, 0, 0, 0.3);
+            /* 暗い面では影より光のほうが縁を立たせる。黒ではなく白い光を内側に入れる */
+            --inset:     inset 0 1px 0 rgba(255, 244, 232, 0.55), inset 0 2px 10px rgba(255, 236, 214, 0.20), inset 0 -1px 0 rgba(255, 244, 232, 0.22);
+            --rim:
+                linear-gradient(180deg, rgba(255, 240, 222, 0.26) 0%, rgba(255, 240, 222, 0.08) 7%, rgba(255, 240, 222, 0) 18%),
+                linear-gradient(0deg,   rgba(255, 240, 222, 0.14) 0%, rgba(255, 240, 222, 0.04) 6%, rgba(255, 240, 222, 0) 15%),
+                linear-gradient(90deg,  rgba(255, 240, 222, 0.12) 0%, rgba(255, 240, 222, 0) 4%),
+                linear-gradient(270deg, rgba(255, 240, 222, 0.12) 0%, rgba(255, 240, 222, 0) 4%);
             --track:     rgba(255, 230, 205, 0.20);
             --accent:    #ffbe72;                    /* 空より明るく置いて、日輪として浮かせる */
             --accent-2:  #ff8f70;
@@ -74,6 +87,8 @@
 
         /* 空のグラデーションはこのカードの中に描く。枠外はNotionの色のまま */
         .jt-card {
+            position: relative;
+            z-index: 0; /* ::after を空の上・中身の下に置くための重ね順の起点 */
             background: var(--page);
             box-shadow: var(--inset);
             border: 1px solid var(--edge);
@@ -85,6 +100,17 @@
             transition: background 2s ease;
             width: 100%;
             max-width: 680px;
+        }
+
+        /* 内壁。空の上に重ねて、盤面が窪んで見えるようにする */
+        .jt-card::after {
+            content: "";
+            position: absolute;
+            inset: 0;
+            z-index: -1;
+            border-radius: inherit;
+            pointer-events: none;
+            background: var(--rim);
         }
 
         .jt-ring {
