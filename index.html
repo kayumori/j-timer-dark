@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ジャーナリングタイマー</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        :root {
+            --base:      #121316; /* 待機中の地色 */
+            --card:      #1a1b1f;
+            --card-run:  rgba(22, 23, 27, 0.72); /* 計測中は下の色を少し透かす */
+            --edge:      rgba(148, 163, 184, 0.16);
+            --edge-str:  rgba(148, 163, 184, 0.28);
+            --track:     #2b2d34; /* リングの軌道 */
+            --accent:    #818cf8; /* 暗い面でも沈まないよう、元より一段明るいインディゴ */
+            --fg:        #eef0f4;
+            --fg-mute:   #98a1b0;
+            --btn:       #e9ebef;
+            --btn-fg:    #16171b;
+            --hover:     rgba(255, 255, 255, 0.055);
+        }
+
+        html { background: var(--base); }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Inter', sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background: var(--base);
+            padding: 20px;
+        }
+
+        .jt-card {
+            background: var(--card);
+            border: 1px solid var(--edge);
+            border-radius: 12px;
+            padding: 1rem 1.75rem;
+            display: flex;
+            align-items: center;
+            gap: 1.75rem;
+            transition: background 2s ease;
+            width: 100%;
+            max-width: 680px;
+        }
+
+        .jt-ring {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            background: conic-gradient(var(--accent) 0deg, var(--track) 0deg);
+        }
+
+        .jt-inner {
+            width: 60px;
+            height: 60px;
+            background: var(--card);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid var(--edge);
+        }
+
+        .jt-time {
+            font-size: 16px;
+            font-weight: 500;
+            color: var(--fg);
+            font-variant-numeric: tabular-nums;
+            letter-spacing: -0.02em;
+        }
+
+        .jt-mid {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+            flex: 1;
+            min-width: 0;
+        }
+
+        .jt-phase {
+            font-size: 11px;
+            color: var(--fg-mute);
+            line-height: 1.4;
+        }
+
+        .jt-divider {
+            width: 1px;
+            height: 24px;
+            background: var(--edge-str);
+            flex-shrink: 0;
+        }
+
+        .jt-right {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-shrink: 0;
+        }
+
+        .jt-sel {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            transition: opacity 0.3s;
+        }
+
+        .jt-label {
+            font-size: 11px;
+            color: var(--fg-mute);
+            white-space: nowrap;
+        }
+
+        .jt-input {
+            width: 44px;
+            font-size: 12px;
+            text-align: center;
+            padding: 3px 5px;
+            border: 1px solid var(--edge-str);
+            border-radius: 5px;
+            background: #202228;
+            color: var(--fg);
+            font-family: inherit;
+        }
+
+        .jt-input:focus {
+            outline: none;
+            border-color: var(--accent);
+        }
+
+        .jt-start {
+            background: var(--btn);
+            color: var(--btn-fg);
+            border: none;
+            border-radius: 7px;
+            font-size: 13px;
+            font-weight: 500;
+            padding: 8px 18px;
+            cursor: pointer;
+            font-family: inherit;
+            transition: opacity 0.15s, transform 0.1s;
+            white-space: nowrap;
+        }
+
+        .jt-start:hover { opacity: 0.82; }
+        .jt-start:active { transform: scale(0.97); }
+
+        .jt-mini {
+            background: none;
+            border: 1px solid var(--edge-str);
+            border-radius: 5px;
+            font-size: 11px;
+            color: var(--fg-mute);
+            padding: 4px 9px;
+            cursor: pointer;
+            font-family: inherit;
+            white-space: nowrap;
+            transition: background 0.15s;
+        }
+
+        .jt-mini:hover { background: var(--hover); }
+    </style>
+</head>
+<body>
+
+<div class="jt-card" id="jt-card">
+
+    <div class="jt-ring" id="jt-ring">
+        <div class="jt-inner">
+            <span class="jt-time" id="jt-time">10:00</span>
+        </div>
+    </div>
+
+    <div class="jt-mid">
+        <div class="jt-phase" id="jt-phase">深呼吸をして準備を整えましょう</div>
+    </div>
+
+    <div class="jt-divider"></div>
+
+    <div class="jt-right">
+        <div class="jt-sel" id="jt-sel">
+            <input type="number" class="jt-input" id="jt-input" value="10" min="1" max="60" onchange="jtUpdate()">
+            <span class="jt-label">分</span>
+        </div>
+        <button class="jt-start" onclick="jtStart()">スタート</button>
+        <button class="jt-mini" onclick="jtStop()">ストップ</button>
+        <button class="jt-mini" onclick="jtReset()">リセット</button>
+    </div>
+
+</div>
+
+<script>
+    let jt_iv, jt_rem = 600, jt_run = false, jt_total = 600;
+    const $ = id => document.getElementById(id);
+
+    // 配色はCSS変数から読む。色を変えたいときは :root だけ触れば済む
+    const css = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+    const JT_BASE = css('--base'), JT_CARD = css('--card'), JT_CARD_RUN = css('--card-run');
+    const JT_ACCENT = css('--accent'), JT_TRACK = css('--track');
+
+    function jtFmt(s) { return Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0'); }
+
+    function jtUpdate() {
+        if (!jt_run) { jt_total = (parseInt($('jt-input').value) || 10) * 60; jt_rem = jt_total; jtDraw(); }
+    }
+
+    function jtDraw() {
+        $('jt-time').textContent = jtFmt(jt_rem);
+        const deg = ((jt_total - jt_rem) / jt_total) * 360;
+        $('jt-ring').style.background = 'conic-gradient(' + JT_ACCENT + ' ' + deg + 'deg, ' + JT_TRACK + ' ' + deg + 'deg)';
+        jtPhase();
+    }
+
+    function jtPhase() {
+        const p = (jt_total - jt_rem) / jt_total;
+        jtBg(p);
+        if (!jt_run) return;
+        $('jt-phase').textContent = ['心を静めて、思考を整理しましょう', '自由に思考を流れるままに表現してください', '深い洞察や気づきを大切に記録しましょう', 'もうすぐ完了です。最後の思考をまとめましょう'][p < 0.25 ? 0 : p < 0.5 ? 1 : p < 0.75 ? 2 : 3];
+    }
+
+    function lerp(c1, c2, f) {
+        const h1 = c1.replace('#', ''), h2 = c2.replace('#', '');
+        return '#' + [0, 2, 4].map(i => {
+            const v = Math.round(parseInt(h1.substr(i, 2), 16) + (parseInt(h2.substr(i, 2), 16) - parseInt(h1.substr(i, 2), 16)) * f);
+            return v.toString(16).padStart(2, '0');
+        }).join('');
+    }
+
+    // 進むにつれて 夜の青 → 琥珀 → 深い緑 へ。暗いまま色相だけ動かす
+    function jtBg(p) {
+        let t, b;
+        if (p <= 0.33) { const lp = p / 0.33; t = lerp('#121316', '#101a26', lp); b = lerp('#1a1c22', '#0d2334', lp); }
+        else if (p <= 0.66) { const lp = (p - 0.33) / 0.33; t = lerp('#101a26', '#1e1a12', lp); b = lerp('#0d2334', '#2a2113', lp); }
+        else { const lp = (p - 0.66) / 0.34; t = lerp('#1e1a12', '#111f16', lp); b = lerp('#2a2113', '#10281c', lp); }
+        document.body.style.background = 'linear-gradient(135deg,' + t + ' 0%,' + b + ' 100%)';
+        $('jt-card').style.background = JT_CARD_RUN;
+    }
+
+    function jtStart() {
+        if (!jt_run) {
+            jt_run = true;
+            $('jt-input').disabled = true;
+            const s = $('jt-sel'); s.style.opacity = '0.35'; s.style.pointerEvents = 'none';
+            jt_iv = setInterval(() => { jt_rem--; jtDraw(); if (jt_rem <= 0) jtComplete(); }, 1000);
+            jtPhase();
+        }
+    }
+
+    function jtStop() {
+        if (jt_run) {
+            jt_run = false;
+            clearInterval(jt_iv);
+            $('jt-phase').textContent = '一時停止中 — スタートで再開';
+        }
+    }
+
+    function jtReset() {
+        jt_run = false; clearInterval(jt_iv);
+        $('jt-input').disabled = false;
+        const s = $('jt-sel'); s.style.opacity = '1'; s.style.pointerEvents = 'auto';
+        jt_total = (parseInt($('jt-input').value) || 10) * 60; jt_rem = jt_total;
+        jtDraw();
+        $('jt-phase').textContent = '深呼吸をして準備を整えましょう';
+        document.body.style.background = JT_BASE;
+        $('jt-card').style.background = JT_CARD;
+    }
+
+    function jtComplete() {
+        jt_run = false; clearInterval(jt_iv);
+        $('jt-phase').textContent = 'お疲れさまでした。素晴らしいジャーナリングでした';
+        const s = $('jt-sel'); s.style.opacity = '1'; s.style.pointerEvents = 'auto';
+        $('jt-input').disabled = false;
+        try {
+            const ctx = new (window.AudioContext || window.webkitAudioContext)();
+            [440, 523.25, 659.25, 783.99].forEach((f, i) => {
+                const o = ctx.createOscillator(), g = ctx.createGain();
+                o.connect(g); g.connect(ctx.destination);
+                o.frequency.setValueAtTime(f, ctx.currentTime); o.type = 'sine';
+                const d = i * 0.15, v = 0.08 - i * 0.015;
+                g.gain.setValueAtTime(0, ctx.currentTime + d);
+                g.gain.linearRampToValueAtTime(v, ctx.currentTime + d + 0.2);
+                g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + d + 2.5);
+                o.start(ctx.currentTime + d); o.stop(ctx.currentTime + d + 2.5);
+            });
+        } catch (e) {}
+    }
+
+    jtDraw();
+</script>
+
+</body>
+</html>
