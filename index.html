@@ -22,47 +22,37 @@
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
 
-        /* ライト */
+        /* 両テーマとも「夜から始まって明けていく」ので、CSS側は夜の値を初期値として持つ。
+           進行に合わせた実際の色は JS が上書きする */
+
+        /* ライト：黒っぽい青の夜 → 朝焼け → 明るい青空 */
         :root {
-            --page:      #fff;                       /* 枠外。Notionのページ色に合わせる */
-            --edge:      rgba(163, 110, 70, 0.20);
-            --edge-str:  rgba(163, 110, 70, 0.30);
-            --inner:     rgba(255, 255, 255, 0.78);  /* リング中央の面。空の色に馴染ませる */
-            /* 縁の1本線 */
-            --inset:     inset 0 1px 1px rgba(96, 46, 8, 0.20), inset 0 -1px 1px rgba(96, 46, 8, 0.10);
-            /* 内壁。上から光が入る想定で、上辺がいちばん濃く落ちる */
-            --rim:
-                linear-gradient(180deg, rgba(96, 46, 8, 0.17) 0%, rgba(96, 46, 8, 0.05) 7%, rgba(96, 46, 8, 0) 17%),
-                linear-gradient(0deg,   rgba(96, 46, 8, 0.11) 0%, rgba(96, 46, 8, 0.03) 6%, rgba(96, 46, 8, 0) 14%),
-                linear-gradient(90deg,  rgba(96, 46, 8, 0.10) 0%, rgba(96, 46, 8, 0) 4%),
-                linear-gradient(270deg, rgba(96, 46, 8, 0.10) 0%, rgba(96, 46, 8, 0) 4%);
-            --track:     rgba(120, 70, 35, 0.16);    /* リングの軌道 */
-            --accent:    #f97316;                    /* 朝日のオレンジ */
-            --accent-2:  #ef5f52;                    /* リングの始まり側。朝焼けの赤み */
-            --fg:        #33221a;
-            --fg-mute:   #856a58;
-            --btn:       #33221a;
-            --btn-fg:    #fdf8f3;
-            --input-bg:  rgba(255, 255, 255, 0.6);
-            --hover:     rgba(163, 110, 70, 0.09);
-            --sw:        #c3ab98;
+            --page:      #fff;      /* 枠外。Notionのページ色に合わせる */
+            --card-init: #0f1a2e;
+            --edge:      rgba(188, 214, 240, 0.20);
+            --edge-str:  rgba(188, 214, 240, 0.32);
+            --inner:     rgba(13, 22, 38, 0.46);
+            --track:     rgba(219, 232, 248, 0.22);
+            --accent:    #ffc07a;
+            --accent-2:  #ff9270;
+            --fg:        #f2f6ff;
+            --fg-mute:   #c9d6ea;
+            --btn:       #eaf1fb;
+            --btn-fg:    #16243a;
+            --input-bg:  rgba(232, 240, 251, 0.10);
+            --hover:     rgba(200, 220, 245, 0.11);
+            --sw:        #7d8ea6;
         }
-        /* ダーク：夜明け前。真っ暗にはせず、空が白み始めたくらいの明るさから始める */
+        /* ダーク：夜の青 → 朝焼け → 白い朝 */
         html[data-theme="dark"] {
-            --page:      #191919;                    /* Notionダークのページ背景と同じ色 */
+            --page:      #191919;   /* Notionダークのページ背景と同じ色 */
+            --card-init: #0d1220;
             --edge:      rgba(255, 195, 155, 0.16);
             --edge-str:  rgba(255, 195, 155, 0.28);
             --inner:     rgba(45, 14, 2, 0.46);
-            /* 暗い面では影より光のほうが縁を立たせる。黒ではなく白い光を内側に入れる */
-            --inset:     inset 0 1px 0 rgba(255, 244, 232, 0.55), inset 0 2px 10px rgba(255, 236, 214, 0.20), inset 0 -1px 0 rgba(255, 244, 232, 0.22);
-            --rim:
-                linear-gradient(180deg, rgba(255, 240, 222, 0.26) 0%, rgba(255, 240, 222, 0.08) 7%, rgba(255, 240, 222, 0) 18%),
-                linear-gradient(0deg,   rgba(255, 240, 222, 0.14) 0%, rgba(255, 240, 222, 0.04) 6%, rgba(255, 240, 222, 0) 15%),
-                linear-gradient(90deg,  rgba(255, 240, 222, 0.12) 0%, rgba(255, 240, 222, 0) 4%),
-                linear-gradient(270deg, rgba(255, 240, 222, 0.12) 0%, rgba(255, 240, 222, 0) 4%);
             --track:     rgba(255, 230, 205, 0.20);
-            --accent:    #ffbe72;                    /* 空より明るく置いて、日輪として浮かせる */
-            --accent-2:  #ff8f70;
+            --accent:    #ffc07a;
+            --accent-2:  #ff9270;
             --fg:        #fff6ef;
             --fg-mute:   #f0d9c8;
             --btn:       #f7e8db;
@@ -77,19 +67,19 @@
 
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Inter', sans-serif;
+            background: var(--page);
             display: flex;
             justify-content: center;
             align-items: center;
             min-height: 100vh;
-            background: var(--page);
             padding: 20px;
         }
 
-        /* 空のグラデーションはこのカードの中に描く。枠外はNotionの色のまま */
+        /* 空はこのカードの中に描く。枠外はNotionの色のまま */
         .jt-card {
             position: relative;
-            z-index: 0; /* ::after を空の上・中身の下に置くための重ね順の起点 */
-            background: var(--page);
+            z-index: 0; /* 内壁を空の上・中身の下に置くための重ね順の起点 */
+            background: var(--card-init);
             box-shadow: var(--inset);
             border: 1px solid var(--edge);
             border-radius: 12px;
@@ -211,7 +201,6 @@
             padding: 8px 18px;
             cursor: pointer;
             font-family: inherit;
-            transition: opacity 0.15s, transform 0.1s;
             white-space: nowrap;
         }
 
@@ -228,7 +217,6 @@
             cursor: pointer;
             font-family: inherit;
             white-space: nowrap;
-            transition: background 0.15s;
         }
 
         .jt-mini:hover { background: var(--hover); }
@@ -248,7 +236,6 @@
             opacity: 0.5;
             -webkit-appearance: none;
             appearance: none;
-            transition: opacity 0.18s;
         }
         .jt-tg:hover, .jt-tg:focus-visible { opacity: 1; }
         .jt-tg:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
@@ -264,9 +251,15 @@
         }
         html[data-theme="dark"] .jt-tg i { transform: translateX(13px); }
 
+        /* 夜 → 朝 の反転は一瞬で切り替わる。見た目だけこの時間をかけて渡す */
+        .jt-time, .jt-phase, .jt-label { transition: color .8s ease; }
+        .jt-inner, .jt-divider { transition: background .8s ease, border-color .8s ease; }
+        .jt-start, .jt-mini, .jt-input, .jt-tg {
+            transition: background .8s ease, color .8s ease, border-color .8s ease, opacity .18s, transform .1s;
+        }
+
         @media (prefers-reduced-motion: reduce) {
-            .jt-tg i { transition: none; }
-            .jt-card { transition: none; }
+            .jt-tg i, .jt-card { transition: none; }
         }
     </style>
 </head>
@@ -303,16 +296,56 @@
     let jt_iv, jt_rem = 600, jt_run = false, jt_total = 600;
     const $ = id => document.getElementById(id);
     const root = document.documentElement;
-
-    // 配色はCSS変数から読む。テーマを切り替えたら値が変わるので、その都度読み直す
-    const C = n => getComputedStyle(root).getPropertyValue(n).trim();
     const isDark = () => root.getAttribute('data-theme') !== 'light';
 
-    // 空の色。夜明け前 → 朝焼け → 陽が昇る の4段階をテーマごとに持つ
+    // 空の色。下から光が上がる放射グラデーションで、4段階を進行に合わせて渡っていく。
+    // stops は [地平線の光, 空] の組。
     const SKY = {
-        light: [['#fdf8f3', '#f7ece1'], ['#fff3e9', '#ffe0c8'], ['#fff0e0', '#ffd3b0'], ['#fff2e2', '#ffc796']],
-        dark:  [['#8a4508', '#b25a09'], ['#994e09', '#c2670a'], ['#ab580a', '#d4740e'], ['#bb640d', '#e5860f']]
+        // 夜の青 → 地平線が色づく → 朝焼け → 白い朝
+        dark: {
+            pos: '145% 125% at 50% 122%',
+            ringFrom: ['#ff9270', '#ffc07a'], ringTo: ['#e0431f', '#ef7d12'],
+            stops: [['#24314f', '#0d1220'], ['#8a3c34', '#1c2242'], ['#d4620e', '#6a4a58'], ['#ff9a24', '#ffffff']]
+        },
+        // 黒っぽい青 → 地平線がオレンジ → 朝焼け → 明るい青空
+        light: {
+            pos: '150% 128% at 50% 124%', uiBlue: true,
+            ringFrom: ['#ff9270', '#ffc07a'], ringTo: ['#d43a22', '#ee6f0a'],
+            stops: [['#1e3358', '#0f1a2e'], ['#c25a2a', '#26365e'], ['#ff8231', '#8f86ab'], ['#ffd9a0', '#7fc0f2']]
+        }
     };
+
+    // 夜 → 朝 でUI側も入れ替える。[夜の色, 朝の色]、透明度つきは [色, 透明度]
+    const UI = {
+        // 白い朝に着地する側。文字は暖色の黒
+        dark: {
+            '--fg':      ['#fff6ef', '#2b1a10'],
+            '--fg-mute': ['#f0d9c8', '#6b4a34'],
+            '--btn':     ['#f7e8db', '#2b1a10'],
+            '--btn-fg':  ['#2a1a11', '#fff3e6'],
+            '--edge':    [['#ffc39b', 0.16], ['#6b3a14', 0.24]],
+            '--edge-str':[['#ffc39b', 0.28], ['#6b3a14', 0.34]],
+            '--track':   [['#ffe6cd', 0.20], ['#6b3a14', 0.20]],
+            '--inner':   [['#2d0e02', 0.46], ['#ffffff', 0.62]],
+            '--input-bg':[['#fff0e1', 0.09], ['#ffffff', 0.55]],
+            '--sw':      ['#96796a', '#b09480']
+        },
+        // 青空に着地する側。暖色の文字だと濁るので、青寄りの黒にする
+        light: {
+            '--fg':      ['#f2f6ff', '#16243a'],
+            '--fg-mute': ['#c9d6ea', '#485971'],
+            '--btn':     ['#eaf1fb', '#16243a'],
+            '--btn-fg':  ['#16243a', '#f2f6ff'],
+            '--edge':    [['#bcd6f0', 0.20], ['#204066', 0.24]],
+            '--edge-str':[['#bcd6f0', 0.32], ['#204066', 0.34]],
+            '--track':   [['#dbe8f8', 0.22], ['#204066', 0.20]],
+            '--inner':   [['#0d1626', 0.46], ['#ffffff', 0.66]],
+            '--input-bg':[['#e8f0fb', 0.10], ['#ffffff', 0.60]],
+            '--sw':      ['#7d8ea6', '#8fa3bb']
+        }
+    };
+
+    const FLIP = 0.66; // 文字とボタンを反転させる進捗
 
     function jtFmt(s) { return Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0'); }
 
@@ -324,26 +357,65 @@
         }).join('');
     }
 
-    // 進むにつれて空が明けていく。カードの中に描くので、枠外はNotionの色のまま
-    function jtSky(p) {
-        const s = SKY[isDark() ? 'dark' : 'light'];
+    function rgba(hex, a) {
+        const h = hex.replace('#', '');
+        return 'rgba(' + parseInt(h.substr(0, 2), 16) + ',' + parseInt(h.substr(2, 2), 16) + ',' + parseInt(h.substr(4, 2), 16) + ',' + a.toFixed(3) + ')';
+    }
+
+    // 進行に合わせて4段階を渡る。i段目とi+1段目の間を lp で混ぜる
+    function jtStage(p) {
+        const s = SKY[isDark() ? 'dark' : 'light'].stops;
         let i, lp;
         if (p <= 0.33) { i = 0; lp = p / 0.33; }
         else if (p <= 0.66) { i = 1; lp = (p - 0.33) / 0.33; }
         else { i = 2; lp = (p - 0.66) / 0.34; }
-        return 'linear-gradient(135deg,' + lerp(s[i][0], s[i + 1][0], lp) + ' 0%,' + lerp(s[i][1], s[i + 1][1], lp) + ' 100%)';
+        return [lerp(s[i][0], s[i + 1][0], lp), lerp(s[i][1], s[i + 1][1], lp)];
     }
 
-    // 進んだぶんの弧を、朝焼けの赤みから朝日のオレンジへ流す
-    function jtRing(deg) {
-        return 'conic-gradient(' + C('--accent-2') + ' 0deg, ' + C('--accent') + ' ' + deg + 'deg, ' + C('--track') + ' ' + deg + 'deg)';
+    function jtSky(p) {
+        const set = SKY[isDark() ? 'dark' : 'light'];
+        const c = jtStage(p);
+        return 'radial-gradient(' + set.pos + ',' + c[0] + ' 0%,' + lerp(c[0], c[1], 0.55) + ' 42%,' + c[1] + ' 100%)';
     }
 
-    // カウントを進めずに、今のテーマ・今の進捗で塗り直す
+    // 進んだぶんの弧。夜は淡い日輪、朝は空に負けないよう濃いオレンジへ
+    function jtRing(deg, d) {
+        const set = SKY[isDark() ? 'dark' : 'light'];
+        const a2 = lerp(set.ringFrom[0], set.ringTo[0], d);
+        const a1 = lerp(set.ringFrom[1], set.ringTo[1], d);
+        return 'conic-gradient(' + a2 + ' 0deg, ' + a1 + ' ' + deg + 'deg, ' + getComputedStyle(root).getPropertyValue('--track').trim() + ' ' + deg + 'deg)';
+    }
+
+    // 内壁。夜は白い光、朝は黒い影。d で両者をクロスフェードさせる
+    function jtRim(d) {
+        const shape = [[0.26, 0.08, 7, 18], [0.14, 0.04, 6, 15], [0.12, 0, 4, 4], [0.12, 0, 4, 4]];
+        const dirs = ['180deg', '0deg', '90deg', '270deg'];
+        const layer = (col, scale) => shape.map((o, i) =>
+            'linear-gradient(' + dirs[i] + ',' + rgba(col, o[0] * scale) + ' 0%,' + rgba(col, o[1] * scale) + ' ' + o[2] + '%,' + rgba(col, 0) + ' ' + o[3] + '%)').join(',');
+        return layer('#fff0de', 1 - d) + ',' + layer('#3a2408', d * 0.8);
+    }
+
+    // 夜 → 朝 でUI全体を入れ替える。u は文字の反転（一瞬）、d は陰影（なだらか）
+    function jtDayUI(u, d) {
+        const map = UI[isDark() ? 'dark' : 'light'];
+        for (const k in map) {
+            const v = map[k];
+            root.style.setProperty(k, Array.isArray(v[0])
+                ? rgba(lerp(v[0][0], v[1][0], u), v[0][1] + (v[1][1] - v[0][1]) * u)
+                : lerp(v[0], v[1], u));
+        }
+        root.style.setProperty('--rim', jtRim(d));
+        root.style.setProperty('--inset',
+            'inset 0 3px 12px ' + rgba('#fff0de', 0.16 * (1 - d)) + ', inset 0 3px 10px ' + rgba('#3a2408', 0.14 * d));
+    }
+
+    // 今のテーマ・今の進捗で塗り直す（カウントは進めない）
     function jtPaint() {
         const p = (jt_total - jt_rem) / jt_total;
+        const d = Math.pow(p, 1.35); // 空はなだらかに明ける
+        jtDayUI(p >= FLIP ? 1 : 0, d);
         $('jt-time').textContent = jtFmt(jt_rem);
-        $('jt-ring').style.background = jtRing(p * 360);
+        $('jt-ring').style.background = jtRing(p * 360, d);
         $('jt-card').style.background = jtSky(p);
     }
 
